@@ -1,0 +1,15 @@
+# Ignore virtual environments
+venv/
+
+# Python cache files
+__pychache__/
+*.pyc 
+
+# System files
+.DS_Store
+
+# Secrets
+.env 
+
+# Output files
+jobs.csv
