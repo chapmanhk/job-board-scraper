@@ -4,6 +4,7 @@ charset-normalizer==3.4.2
 click==8.2.0
 colorama==0.4.6
 duckduckgo_search==8.0.2
+google_search_results==2.4.2
 idna==3.10
 lxml==5.4.0
 numpy==2.2.6
