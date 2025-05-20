@@ -11,5 +11,11 @@ __pychache__/
 # Secrets
 .env 
 
-# Output files
-jobs.csv
+# Data and cache files
+*.csv
+*.json
+*.sqlite3
+*.log
+
+# Keep versioned company list
+!data/company_slugs.json
