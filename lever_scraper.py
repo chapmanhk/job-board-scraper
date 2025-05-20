@@ -24,10 +24,10 @@ def serpapi_lever_search(query, api_key, max_results=20, timeframe="w"):
     return list(set(links))
 
 if __name__ == "__main__":
-    query = '("data analyst" OR "analytics engineer" OR "data engineer" OR "data scientist") remote (site:jobs.lever.co OR site:boards.greenhouse.io)'
+    query = '(data) (site:"jobs.lever.co" OR site:"boards.greenhouse.io")'
     serpapi_key = os.environ.get("SERPAPI_KEY")
-    links = serpapi_lever_search(query, serpapi_key, max_results=20, timeframe="m")
+    links = serpapi_lever_search(query, serpapi_key, max_results=1000, timeframe="m")
 
-    print(f"Found {len(links)} Lever job links from the past month:")
+    print(f"Found {len(links)} job links from the past month:")
     for link in links:
         print(link)
