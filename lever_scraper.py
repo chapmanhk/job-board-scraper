@@ -1,3 +1,10 @@
+
+
+
+
+
+# Old SerpAPI boolean search code
+'''
 from dotenv import load_dotenv
 from serpapi import GoogleSearch
 import os
@@ -31,3 +38,4 @@ if __name__ == "__main__":
     print(f"Found {len(links)} job links from the past month:")
     for link in links:
         print(link)
+'''
