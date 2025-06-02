@@ -1,41 +1,60 @@
+import json
+import requests
+from pathlib import Path
+from bs4 import BeautifulSoup
 
+# Read company slugs
 
+def load_slugs(filepath="data/company_slugs.json"):
+    with open(filepath, "r") as f:
+        return json.load(f)
 
+# Build base URLs
 
+def build_lever_urls(slugs):
+    return [f"https://jobs.lever.co/{slug}" for slug in slugs]
 
-# Old SerpAPI boolean search code
-'''
-from dotenv import load_dotenv
-from serpapi import GoogleSearch
-import os
+def build_greenhouse_urls(slugs):
+    return [f"https://boards.greenhouse.io/{slug}" for slug in slugs]
 
-load_dotenv()
+# Send requests and parse HTML
 
-def serpapi_lever_search(query, api_key, max_results=20, timeframe="w"):
-    params = {
-        "engine": "google",
-        "q": query,
-        "num": max_results,
-        "api_key": api_key,
-        "tbs": f"qdr:{timeframe}"
-    }
+def fetch_jobs_from_lever(company_url):
+    try:
+        response = requests.get(company_url, timeout=10)
+        response.raise_for_status()
+    except requests.RequestException:
+        return []
+    
+    soup = BeautifulSoup(response.text, "html.parser")
+    jobs = []
+    for posting in soup.select("div.posting"):
+        title = posting.select_one("h5")
+        location = posting.select_one("span.sort-by-location")
+        url = posting.find("a", href=True)
 
-    search = GoogleSearch(params)
-    results = search.get_dict()
+        if title and url:
+            jobs.append({
+                "title": title.text.strip(),
+                "location": location.text.strip() if location else "",
+                "url": f"https://jobs.lever.co{url['href']}",
+                "source": "lever"
+            })
 
-    links = []
-    for result in results.get("organic_results", []):
-        url = result.get("link")
-        links.append(url)
-
-    return list(set(links))
+    return jobs
 
 if __name__ == "__main__":
-    query = '(data) (site:"jobs.lever.co" OR site:"boards.greenhouse.io")'
-    serpapi_key = os.environ.get("SERPAPI_KEY")
-    links = serpapi_lever_search(query, serpapi_key, max_results=1000, timeframe="m")
+    slugs = load_slugs()
+    lever_urls = build_lever_urls(slugs["lever"])
 
-    print(f"Found {len(links)} job links from the past month:")
-    for link in links:
-        print(link)
-'''
+    all_jobs = []
+    for url in lever_urls:
+        print(f"Scraping {url}")
+        jobs = fetch_jobs_from_lever(url)
+        all_jobs.extend(jobs)
+
+    print(f"Collected {len(all_jobs)} jobs.")
+
+    # Save to file:
+    with open("data/lever_jobs.json", "w") as f:
+        json.dump(all_jobs, f, indent=2)
