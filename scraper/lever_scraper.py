@@ -44,18 +44,29 @@ def fetch_jobs_from_lever(company_url):
 
     return jobs
 
+def load_existing_jobs(filepath):
+    if Path(filepath).exists():
+        with open(filepath, "r") as f:
+            return json.load(f)
+    return []
+
 if __name__ == "__main__":
     slugs = load_slugs()
     lever_urls = build_lever_urls(slugs["lever"])
 
-    all_jobs = []
+    existing_jobs = load_existing_jobs("data/lever_jobs.json")
+    existing_urls = {job["url"] for job in existing_jobs}
+    
+    all_jobs = existing_jobs.copy()
+
     for url in lever_urls:
         print(f"Scraping {url}")
         jobs = fetch_jobs_from_lever(url)
-        all_jobs.extend(jobs)
+        new_jobs = [job for job in jobs if job["url"] not in existing_urls]
+        all_jobs.extend(new_jobs)
         time.sleep(uniform(1.5, 3.0)) # Random delay between 1.5 to 3 seconds
 
-    print(f"Collected {len(all_jobs)} jobs.")
+    print(f"Collected {len(all_jobs)} total jobs.")
 
     # Save to file:
     with open("data/lever_jobs.json", "w") as f:
