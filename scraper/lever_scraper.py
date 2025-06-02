@@ -1,7 +1,10 @@
 import json
 import requests
+import time
 from pathlib import Path
 from bs4 import BeautifulSoup
+from utils.request_helpers import get_with_retry
+from random import uniform
 
 # Read company slugs
 
@@ -20,10 +23,8 @@ def build_greenhouse_urls(slugs):
 # Send requests and parse HTML
 
 def fetch_jobs_from_lever(company_url):
-    try:
-        response = requests.get(company_url, timeout=10)
-        response.raise_for_status()
-    except requests.RequestException:
+    response = get_with_retry(company_url)
+    if not response: 
         return []
     
     soup = BeautifulSoup(response.text, "html.parser")
@@ -37,7 +38,7 @@ def fetch_jobs_from_lever(company_url):
             jobs.append({
                 "title": title.text.strip(),
                 "location": location.text.strip() if location else "",
-                "url": f"https://jobs.lever.co{url['href']}",
+                "url": f"{url['href']}",
                 "source": "lever"
             })
 
@@ -52,6 +53,7 @@ if __name__ == "__main__":
         print(f"Scraping {url}")
         jobs = fetch_jobs_from_lever(url)
         all_jobs.extend(jobs)
+        time.sleep(uniform(1.5, 3.0)) # Random delay between 1.5 to 3 seconds
 
     print(f"Collected {len(all_jobs)} jobs.")
 
