@@ -50,6 +50,15 @@ def load_existing_jobs(filepath):
             return json.load(f)
     return []
 
+DATA_KEYWORDS = [
+    "data", "analytics", "analyst", "business intelligence", "bi", "machine learning", "ml", "ai", "artificial intelligence", \
+    "forecasting", "nlp", "computer vision", "modeling", "natural language processing", "scientist", "etl", "visualization"
+]
+
+def is_data_role(title):
+    title = title.lower()
+    return any(kw in title for kw in DATA_KEYWORDS)
+
 if __name__ == "__main__":
     slugs = load_slugs()
     lever_urls = build_lever_urls(slugs["lever"])
@@ -62,7 +71,10 @@ if __name__ == "__main__":
     for url in lever_urls:
         print(f"Scraping {url}")
         jobs = fetch_jobs_from_lever(url)
-        new_jobs = [job for job in jobs if job["url"] not in existing_urls]
+        new_jobs = [
+            job for job in jobs
+            if job["url"] not in existing_urls and is_data_role(job["title"])
+        ]
         all_jobs.extend(new_jobs)
         time.sleep(uniform(1.5, 3.0)) # Random delay between 1.5 to 3 seconds
 
