@@ -1,32 +1,16 @@
 # Import libraries
 from serpapi import GoogleSearch # Serpapi client to make Google queries
 from urllib.parse import urlparse # Breaks URLs into components like domain and path
-import re
 import os # Used to check for environment variables and file existence
 import json # used to save and load the slug list as a .json file
-import logging # Create logs for auditing
-from pathlib import Path
+from utils.log_config import setup_logger
+from utils.config import DATA_DIR
 
-# Get the root of the project
-ROOT_DIR = Path(__file__).resolve().parent.parent 
-DATA_DIR = ROOT_DIR / "data"
-LOGS_DIR = ROOT_DIR / "logs"
-
-# Make sure the folders exist
-DATA_DIR.mkdir(exist_ok=True)
-LOGS_DIR.mkdir(exist_ok=True)
 
 # ------------------------------------
-# Logging Setup
+# Logger Setup
 # ------------------------------------
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    handlers=[
-        logging.StreamHandler(), # Log to console
-        logging.FileHandler("logs/discovery.log") # Log to file
-    ]
-)
+logger = setup_logger("discovery", "discovery.log")
 
 # ------------------------------------
 # Extract company slug from URL
@@ -64,7 +48,7 @@ def run_slug_query(source, query, api_key, max_results=100, timeframe="w"):
         if parsed_source == source and slug:
             slugs.add(slug)
 
-    logging.info(f"{source.title()} query returned {len(slugs)} unique slugs.")
+    logger.info(f"{source.title()} query returned {len(slugs)} unique slugs.")
     return slugs
 '''
 def discover_company_slugs(query, api_key, max_results=100, timeframe="w"):
@@ -110,15 +94,15 @@ def save_slugs(slugs, filepath=DATA_DIR / "company_slugs.json"):
         # Find which slugs are new
         new = new_slugs - existing_set
         if new:
-            logging.info(f"New {source.title()} companies discovered: {', '.join(sorted(new))}")
+            logger.info(f"New {source.title()} companies discovered: {', '.join(sorted(new))}")
         else:
-            logging.info(f"No new {source.title()} companies discovered.")
+            logger.info(f"No new {source.title()} companies discovered.")
         updated = existing_set | new_slugs # Merge new slugs with existing ones using a set union (removes duplicates)
         existing[source] = sorted(updated) # Save the sorted list of updated slugs
 
     with open(filepath, "w") as f:
         json.dump(existing, f, indent=2) # Write the updated slug dictionary back to the file
-        logging.info(f"Saved {len(existing['lever'])} Lever slugs and {len(existing['greenhouse'])} Greenhouse slugs to {filepath}")
+        logger.info(f"Saved {len(existing['lever'])} Lever slugs and {len(existing['greenhouse'])} Greenhouse slugs to {filepath}")
 
 # ------------------------------------
 # Main execution block
@@ -126,7 +110,7 @@ def save_slugs(slugs, filepath=DATA_DIR / "company_slugs.json"):
 if __name__ == "__main__": # Entry point
     API_KEY = os.environ.get("SERPAPI_KEY") # Get the serpAPI key from the environment variables
     if not API_KEY: 
-        logging.error("Missing SERPAPI_KEY. Exiting.")
+        logger.error("Missing SERPAPI_KEY. Exiting.")
         raise Exception("Please set your SERPAPI_KEY in environment variables.") # Raise an error if the API key is missing
     
     slugs = {
