@@ -5,13 +5,12 @@ from pathlib import Path
 from bs4 import BeautifulSoup
 from utils.request_helpers import get_with_retry
 from random import uniform
-from utils import log_config
-import logging
+from utils.log_config import setup_logger
 
 # ----------------------------------
 # Setup logger
 # ----------------------------------
-logger = logging.getLogger("scraper")
+logger = setup_logger("scraper", "scraper.log")
 
 
 # Read company slugs

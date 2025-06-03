@@ -7,6 +7,7 @@ LOGS_DIR.mkdir(exist_ok=True) # Ensure logs folder exists
 def setup_logger(name: str, log_file: str, level=logging.INFO):
     log_path = LOGS_DIR / log_file
     logger = logging.getLogger(name)
+    logger.propagate = False
     logger.setLevel(level)
 
     # Prevent duplicate handlers

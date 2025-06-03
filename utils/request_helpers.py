@@ -1,10 +1,12 @@
+from utils.log_config import setup_logger
 import requests
 import time
-import logging
 from random import uniform
 
+
 # Use a named logger configured in log_config.py
-logger = logging.getLogger("requests")
+logger = setup_logger("requests", "requests.log")
+print(f"[DEBUG] Logger setup for requests: {logger.name}, handlers: {logger.handlers}")
 
 def get_with_retry(url, headers=None, retries=3, delay=2):
     for attempt in range(1, retries + 1):
