@@ -5,6 +5,14 @@ from pathlib import Path
 from bs4 import BeautifulSoup
 from utils.request_helpers import get_with_retry
 from random import uniform
+from utils import log_config
+import logging
+
+# ----------------------------------
+# Setup logger
+# ----------------------------------
+logger = logging.getLogger("scraper")
+
 
 # Read company slugs
 
@@ -24,7 +32,8 @@ def build_greenhouse_urls(slugs):
 
 def fetch_jobs_from_lever(company_url):
     response = get_with_retry(company_url)
-    if not response: 
+    if not response:
+        logger.warning(f"Failed to fetch jobs from {company_url}") 
         return []
     
     soup = BeautifulSoup(response.text, "html.parser")
@@ -69,7 +78,7 @@ if __name__ == "__main__":
     all_jobs = existing_jobs.copy()
 
     for url in lever_urls:
-        print(f"Scraping {url}")
+        logger.info(f"Scraping {url}")
         jobs = fetch_jobs_from_lever(url)
         new_jobs = [
             job for job in jobs
@@ -78,7 +87,7 @@ if __name__ == "__main__":
         all_jobs.extend(new_jobs)
         time.sleep(uniform(1.5, 3.0)) # Random delay between 1.5 to 3 seconds
 
-    print(f"Collected {len(all_jobs)} total jobs.")
+    logger.info(f"Collected {len(all_jobs)} total jobs.")
 
     # Save to file:
     with open("data/lever_jobs.json", "w") as f:
